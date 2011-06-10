@@ -121,8 +121,20 @@ public class ArtifactArchiver extends Recorder {
             if (ws==null) { // #3330: slave down?
                 return true;
             }
+            
+            String realArtifacts = this.artifacts;
+            
+            if(this.trimPath)
+            {
+                String commonPathPart = getCommonPathPart();
+                if(commonPathPart != null) {
+                    realArtifacts = removeCommonPart(this.artifacts, commonPathPart);
+                    ws = new FilePath(ws, commonPathPart);
+                }
+            }
 
-            String artifacts = build.getEnvironment(listener).expand(this.artifacts);
+            String artifacts = build.getEnvironment(listener).expand(realArtifacts);
+            
             if(ws.copyRecursiveTo(artifacts,excludes,new FilePath(dir))==0) {
                 if(build.getResult().isBetterOrEqualTo(Result.UNSTABLE)) {
                     // If the build failed, don't complain that there was no matching artifact.
@@ -150,6 +162,16 @@ public class ArtifactArchiver extends Recorder {
         }
 
         return true;
+    }
+    
+    private String getCommonPathPart() {
+        //TODO:
+        return null;
+    }
+    
+    private String removeCommonPart(String filePattern, String commonPathPart) {
+        //TODO:
+        return filePattern;
     }
 
     @Override
