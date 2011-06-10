@@ -63,15 +63,21 @@ public class ArtifactArchiver extends Recorder {
      * Just keep the last successful artifact set, no more.
      */
     private final boolean latestOnly;
+
+    /**
+     * Trim path in archives (if artifats is /bin/release/**, store /bin/release/artifact.exe simply as artifact.exe).
+     */
+    private final boolean trimPath;
     
     private static final Boolean allowEmptyArchive = 
     	Boolean.getBoolean(ArtifactArchiver.class.getName()+".warnOnEmpty");
 
     @DataBoundConstructor
-    public ArtifactArchiver(String artifacts, String excludes, boolean latestOnly) {
+    public ArtifactArchiver(String artifacts, String excludes, boolean latestOnly, boolean trimPath) {
         this.artifacts = artifacts.trim();
         this.excludes = Util.fixEmptyAndTrim(excludes);
         this.latestOnly = latestOnly;
+        this.trimPath = trimPath;
     }
 
     public String getArtifacts() {
@@ -84,6 +90,10 @@ public class ArtifactArchiver extends Recorder {
 
     public boolean isLatestOnly() {
         return latestOnly;
+    }
+    
+    public boolean isTrimPath() {
+        return trimPath;
     }
     
     private void listenerWarnOrError(BuildListener listener, String message) {
