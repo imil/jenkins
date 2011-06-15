@@ -61,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.apache.maven.BuildFailureException;
 import org.apache.maven.artifact.versioning.ComparableVersion;
@@ -203,9 +204,7 @@ public class MavenBuild extends AbstractMavenBuild<MavenModule,MavenBuild> {
         // or if Maven calls itself e.g. maven-release-plugin
         MavenInstallation mvn = project.getParent().getMaven();
         if (mvn == null)
-            throw new AbortException(
-                    "A Maven installation needs to be available for this project to be built.\n"
-                    + "Either your server has no Maven installations defined, or the requested Maven version does not exist.");
+            throw new hudson.AbortException(Messages.MavenModuleSetBuild_NoMavenConfigured());
         mvn = mvn.forEnvironment(envs).forNode(Computer.currentComputer().getNode(), log);
         envs.put("M2_HOME", mvn.getHome());
         envs.put("PATH+MAVEN", mvn.getHome() + "/bin");
@@ -273,7 +272,11 @@ public class MavenBuild extends AbstractMavenBuild<MavenModule,MavenBuild> {
         super.setWorkspace(path);
     }
     
-    
+    @Override
+    public MavenModule getParent() {// don't know why, but javac wants this
+        return super.getParent();
+    }
+
     /**
      * @see hudson.model.AbstractBuild#getBuiltOn()
      * @since 1.394
@@ -620,8 +623,8 @@ public class MavenBuild extends AbstractMavenBuild<MavenModule,MavenBuild> {
             MavenInformation mavenInformation = getModuleRoot().act( new MavenVersionCallable( mvn.getHome() ));
             
             String mavenVersion = mavenInformation.getVersion();
-            
-            listener.getLogger().println("Found mavenVersion " + mavenVersion + " from file " + mavenInformation.getVersionResourcePath());
+
+            LOGGER.fine(getFullDisplayName()+" is building with mavenVersion " + mavenVersion + " from file " + mavenInformation.getVersionResourcePath());
             
             ProcessCache.MavenProcess process = null;
             
@@ -739,12 +742,6 @@ public class MavenBuild extends AbstractMavenBuild<MavenModule,MavenBuild> {
      * Set true to produce debug output.
      */
     public static boolean debug = false;
-    
-    @Override
-    public MavenModule getParent() {// don't know why, but javac wants this
-        return super.getParent();
-    }
 
-    
-
+    private static final Logger LOGGER = Logger.getLogger(MavenBuild.class.getName());
 }
